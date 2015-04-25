@@ -1,17 +1,57 @@
+var generateId = (function() {
+  var id = 0;
+  return function() {
+    return '_' + id++;
+  }
+})();
+
 var todos = [{
-	id: '_1',
-	name: 'Buy sum milk',
-	done: true
+  id: generateId(),
+  name: 'Buy some milk',
+  done: true
 }, {
-	id: '_2',
-	name: 'Birthday present to Alice',
-	done: false
+  id: generateId(),
+  name: 'Birthday present to Alice',
+  done: false
 }];
 
+var TodoStorage = {
+  on: function(_, _callback) {//TODO use EventEmitter
+    this._onChangeCallback = _callback;
+  },
+  getAll: function(callback) {
+    callback(todos);
+  },
+  complete: function(id) {
+    for(var i = 0; i < todos.length; i++) {
+      var todo = todos[i];
+      if(todo.id === id) {
+        var newTodo = React.addons.update(todo, {done: {$set: true}});
+        todos = React.addons.update(todos, {$splice: [[i, 1, newTodo]]});
+        this._onChangeCallback();
+        break;
+      }
+    }
+  },
+  create: function(name, callback) {
+    var newTodo = {
+      id: generateId(),
+      name: name
+    };
+    todos = React.addons.update(todos, {$push: [newTodo]});
+    this._onChangeCallback();
+    callback();
+  }
+};
+
 var Todo = React.createClass({
+	handleClick: function() {
+		TodoStorage.complete(this.props.todo.id);
+	},
 	render: function() {
 		var todo = this.props.todo;
-		return (<li>{todo.name}<button>Done</button></li>);
+		var doneButton = todo.done ? null : <button onClick={this.handleClick}>Done</button>;
+		return (<li>{todo.name}{doneButton}</li>);
 	}
 });
 
@@ -26,6 +66,7 @@ var TodoList = React.createClass({
 			<div className="active-todos">
 				<h2>Active</h2>
 				<ul>{rows}</ul>
+				<TodoForm/>
 			</div>
 		);
 	}
@@ -45,12 +86,11 @@ var TodoForm = React.createClass({
 	handleSubmit: function(e) {
 		e.preventDefault();
 		var name = this.state.name.trim();
-		if (name) {
-			alert(name);
+		TodoStorage.create(name, function() {
 			this.setState({
 				name: ''
 			});
-		}
+		}.bind(this));
 	},
 	render: function() {
 		var disabled = this.state.name.trim().length <= 0;
@@ -63,12 +103,35 @@ var TodoForm = React.createClass({
 })
 
 var App = React.createClass({
+	getInitialState: function() {
+		return {
+			todos: [{
+				id: '_1',
+				name: 'Buy sum milk',
+				done: true
+			}, {
+				id: '_2',
+				name: 'Birthday present to Alice',
+				done: false
+			}]
+		};
+	},
+	componentDidMount: function() {
+		var setTodos = function() {
+			TodoStorage.getAll(function(todos) {
+				this.setState({
+					todos: todos
+				});
+			}.bind(this));
+		}.bind(this);
+		TodoStorage.on('change', setTodos);
+		setTodos();
+	},
 	render: function() {
 		return (
 			<div>
 				<h1>My Todo</h1>
-				<TodoList todos={todos}/>
-				<TodoForm onSubmitTodo={this.handleSubmit}/>
+				<TodoList todos={this.state.todos}/>
 			</div>
 		);
 	}
