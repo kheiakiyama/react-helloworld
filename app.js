@@ -32,18 +32,32 @@ var TodoList = React.createClass({
 });
 
 var TodoForm = React.createClass({
+	getInitialState: function() {
+		return {
+			name: ''
+		};
+	},
+	handleNameChange: function(e) {
+		this.setState({
+			name: e.target.value
+		});
+	},
 	handleSubmit: function(e) {
 		e.preventDefault();
-		var name = this.refs.todoName.getDOMNode().value.trim();
+		var name = this.state.name.trim();
 		if (name) {
 			alert(name);
-			this.refs.todoName.getDOMNode().value = '';
+			this.setState({
+				name: ''
+			});
 		}
 	},
 	render: function() {
+		var disabled = this.state.name.trim().length <= 0;
 		return (
 			<form onSubmit={this.handleSubmit}>
-				<input ref="todoName"></input><input type="submit"></input>
+				<input value={this.state.name} onChange={this.handleNameChange}></input>
+				<input type="submit" disabled={disabled}></input>
 			</form>)
 	}
 })
