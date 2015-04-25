@@ -31,12 +31,30 @@ var TodoList = React.createClass({
 	}
 });
 
+var TodoForm = React.createClass({
+	handleSubmit: function(e) {
+		e.preventDefault();
+		var name = this.refs.todoName.getDOMNode().value.trim();
+		if (name) {
+			alert(name);
+			this.refs.todoName.getDOMNode().value = '';
+		}
+	},
+	render: function() {
+		return (
+			<form onSubmit={this.handleSubmit}>
+				<input ref="todoName"></input><input type="submit"></input>
+			</form>)
+	}
+})
+
 var App = React.createClass({
 	render: function() {
 		return (
 			<div>
 				<h1>My Todo</h1>
 				<TodoList todos={todos}/>
+				<TodoForm onSubmitTodo={this.handleSubmit}/>
 			</div>
 		);
 	}
