@@ -10,7 +10,7 @@ var todos = [{
 
 var Todo = React.createClass({
 	render: function() {
-		var todo = this.prop.todo;
+		var todo = this.props.todo;
 		return (<li>{todo.name}<button>Done</button></li>);
 	}
 });
@@ -44,7 +44,7 @@ var App = React.createClass({
 
 React.render(
 	<App></App>,
-	document.getElementById('app-continer')
+	document.getElementById('app-container')
 );
 
 
